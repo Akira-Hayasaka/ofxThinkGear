@@ -5,7 +5,7 @@
 *.aif* 
 .DS_Store
 
-lib/ThinkGear.bundle
+*.bundle
 
 *.mode1
 *.mode1v3
