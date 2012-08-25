@@ -1,0 +1,15 @@
+*.mov
+ 
+*~.nib
+*.swp
+*.aif* 
+.DS_Store
+
+*.mode1
+*.mode1v3
+*.mode2v3
+*.perspective
+*.perspectivev3
+*.pbxuser
+*.xcworkspace
+xcuserdata
