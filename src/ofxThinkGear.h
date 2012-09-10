@@ -49,10 +49,15 @@ public:
         TG_Disconnect = NULL;
         TG_FreeConnection = NULL;
         TG_EnableBlinkDetection = NULL;
+        tgID = 0;
+        prevBlinkTime = 0;
+        bEnableBlinkAsClick = false;
     }
     
-    void setup(string deviceName = "/dev/tty.MindWaveMobile-DevA")
+    void setup(string deviceName = "/dev/tty.MindWaveMobile-DevA", int _id = 0)
     {     
+        tgID = _id;
+        
         bundleURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault,
                                                   CFSTR("ThinkGear.bundle"), 
                                                   kCFURLPOSIXPathStyle, 
@@ -82,7 +87,8 @@ public:
             !TG_ReadPackets || 
             !TG_GetValue || 
             !TG_Disconnect || 
-            !TG_FreeConnection) 
+            !TG_FreeConnection ||
+            !TG_EnableBlinkDetection) 
         {
             ofLog(OF_LOG_FATAL_ERROR) << "Error: Expected functions in ThinkGear.bundle were not found.";
             exit(1);
@@ -127,24 +133,55 @@ public:
                 {
                     float blink = TG_GetValue(connectionID, TG_DATA_BLINK_STRENGTH);
                     ofNotifyEvent(blinkChangeEvent, blink);
+                    
+                    if (bEnableBlinkAsClick)
+                    {
+                        bool fake = true;
+                        
+                        if (ofGetElapsedTimeMillis() - prevBlinkTime < 500)
+                        {
+                            ofNotifyEvent(doubleClickEvent, fake);
+                        }
+                        else
+                        {
+                            ofNotifyEvent(singleClickEvent, fake);
+                        }
+                        prevBlinkTime = ofGetElapsedTimeMillis();
+                    }
                 }                   
             }
         }        
+    }
+    
+    void enableBlinkAsClick()
+    {
+        bEnableBlinkAsClick = true;
+    }
+    
+    void disableBlinkAsClick()
+    {
+        bEnableBlinkAsClick = false;
     }
     
     float getSignalQuality()
     {
         return signalQuality;
     }
+    
+    int getID()
+    {
+        return tgID;
+    }
  
     ofEvent<float> attentionChangeEvent;
     ofEvent<float> meditationChangeEvent;
     ofEvent<float> blinkChangeEvent;
     
-private:
+    // blink as click event
+    ofEvent<bool> singleClickEvent;
+    ofEvent<bool> doubleClickEvent;
     
-    CFURLRef bundleURL; 
-    CFBundleRef thinkGearBundle;
+protected:
     
     // function pointers;
     int (*TG_GetDriverVersion)(); 
@@ -155,11 +192,20 @@ private:
     bool (*TG_GetValueStatus)(int, int);
     int (*TG_Disconnect)(int);
     void (*TG_FreeConnection)(int);
-    int (*TG_EnableBlinkDetection)(int, int);
+    int (*TG_EnableBlinkDetection)(int, int);    
+    
+private:
+    
+    int tgID;
+    
+    CFURLRef bundleURL; 
+    CFBundleRef thinkGearBundle;
     
     int connectionID;
     float signalQuality;
     
+    bool bEnableBlinkAsClick;
+    int prevBlinkTime;
 };
 
 #endif

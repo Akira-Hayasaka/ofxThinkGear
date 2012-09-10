@@ -53,7 +53,7 @@ void testApp::draw()
     }
     else 
     {
-        qStr = "poor";
+        qStr = "poor (" + ofToString(thinkGear.getSignalQuality()) + ")";
     }
     font.drawString("signal quality = " + qStr, 10, 40);    
     ofPopStyle();
